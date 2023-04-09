@@ -21,12 +21,12 @@ namespace render {
 		inline const fptype operator[](int i) const { return e[i]; }
 		inline const fptype& operator[](int i) { return e[i]; }
 
-		inline const vec3 & operator+=(const vec3 o);
-		inline const vec3 & operator-=(const vec3 o);
-		inline const vec3 & operator*=(const vec3 o);
-		inline const vec3 & operator/=(const vec3 o);
-		inline const vec3 & operator*=(const fptype s);
-		inline const vec3 & operator/=(const fptype s);
+		const vec3 & operator+=(const vec3 o);
+		const vec3 & operator-=(const vec3 o);
+		const vec3 & operator*=(const vec3 o);
+		const vec3 & operator/=(const vec3 o);
+		const vec3 & operator*=(const fptype s);
+		const vec3 & operator/=(const fptype s);
 
 		inline fptype length() const {
 			return std::sqrt(squared_length());
@@ -36,7 +36,7 @@ namespace render {
 			return e[0] * e[0] + e[1] * e[1] + e[2] * e[2];
 		}
 
-		inline void make_unit_vector();
+		void make_unit_vector();
 
 		fptype e[3];
 	};
@@ -58,7 +58,7 @@ namespace render {
 	}
 
 	inline vec3 operator*(const vec3 & v, const fptype s) {
-		return vec3(v.e[0] * s, v.e[2] * s, v.e[2] * s);
+		return vec3(v.e[0] * s, v.e[1] * s, v.e[2] * s);
 	}
 
 	inline vec3 operator*(const fptype s, const vec3 & v) {
@@ -66,7 +66,7 @@ namespace render {
 	}
 
 	inline vec3 operator/(const vec3 & v, const fptype s) {
-		return vec3(v.e[0] / s, v.e[2] / s, v.e[2] / s);
+		return vec3(v.e[0] / s, v.e[1] / s, v.e[2] / s);
 	}
 
 	inline fptype dot(const vec3 & v0, const vec3 & v1) {
@@ -80,7 +80,7 @@ namespace render {
 		);
 	}
 
-	inline vec3 unit_vector(vec3 & v) {
+	inline vec3 unit_vector(const vec3 & v) {
 		return v / v.length();
 	}
 }
