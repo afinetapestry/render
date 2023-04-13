@@ -3,15 +3,20 @@
 #include <cstdlib>
 #include <ctime>
 
-render::camera::camera(const unsigned int width, const unsigned int height) {
+render::camera::camera(const vec3 lookfrom, vec3 lookat, vec3 up, const fptype fov, const fptype aspect) {
 	std::srand(std::time(nullptr));
 
-	const fptype aspect = width / (fptype)height;
+	fptype half_width = std::tan(fov / 2.0);
+	fptype half_height = half_width / aspect;
+	origin = lookfrom;
+	vec3 w = unit_vector(lookfrom - lookat);
+	vec3 u = unit_vector(cross(up, w));
+	vec3 v = cross(w, u);
 
-	lower_left_corner = render::vec3(-1.0, -1.0 / aspect, -1.0);
-	horizontal = render::vec3(2.0, 0.0, 0.0);
-	vertical = render::vec3(0.0, 2.0 / aspect, 0.0);
-	origin = render::vec3(0.0, 0.0, 0.0);
+	vec3 plane = vec3(-half_width, -half_height, -1.0);
+	lower_left_corner = origin - half_width * u - half_height * v - w;
+	horizontal = 2.0 * half_width * u;
+	vertical = 2.0 * half_height * v;
 }
 
 render::ray render::camera::get_ray(const fptype u, const fptype v) const {

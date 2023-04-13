@@ -5,7 +5,7 @@
 
 namespace render {
 	struct camera {
-		camera(const unsigned int width, const unsigned int height);
+		camera(const vec3 lookfrom, vec3 lookat, vec3 up, const fptype fov, const fptype aspect);
 
 		ray get_ray(const fptype u, const fptype v) const;
 

@@ -152,6 +152,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="camera.cpp" />
+    <ClCompile Include="material.cpp" />
     <ClCompile Include="pfm.cpp" />
     <ClCompile Include="render.cpp" />
     <ClCompile Include="sphere.cpp" />
@@ -162,6 +163,7 @@
     <ClInclude Include="fptype.h" />
     <ClInclude Include="hitable.hpp" />
     <ClInclude Include="hitable_list.hpp" />
+    <ClInclude Include="material.hpp" />
     <ClInclude Include="pfm.hpp" />
     <ClInclude Include="ray.hpp" />
     <ClInclude Include="sphere.hpp" />

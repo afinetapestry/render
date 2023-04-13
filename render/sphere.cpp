@@ -13,6 +13,7 @@ bool render::sphere::hit(const ray & r, fptype t_min, fptype t_max, hit_record &
 			rec.t = temp;
 			rec.p = r.point_at_parameter(temp);
 			rec.normal = (rec.p - center) / radius;
+			rec.mat = mat.get();
 			return true;
 		}
 		temp = (-b + std::sqrt(discriminant)) / a;
@@ -20,6 +21,7 @@ bool render::sphere::hit(const ray & r, fptype t_min, fptype t_max, hit_record &
 			rec.t = temp;
 			rec.p = r.point_at_parameter(temp);
 			rec.normal = (rec.p - center) / radius;
+			rec.mat = mat.get();
 			return true;
 		}
 	}

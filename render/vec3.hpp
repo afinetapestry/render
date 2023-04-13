@@ -4,10 +4,18 @@
 
 #include "fptype.h"
 
+#define abort_nan(a) do {if (std::isnan(a)) {abort();}} while (false)
+#define abort_vec3_nan(a) do {if (std::isnan(a.x()) || std::isnan(a.y()) || std::isnan(a.z())) {abort();}} while (false)
+
 namespace render {
 	struct vec3 {
 		vec3() : e{} {}
-		vec3(fptype e0, fptype e1, fptype e2) : e{ e0, e1, e2 } {}
+		vec3(const fptype alpha, const fptype beta) {
+			e[0] = std::cos(alpha) * std::cos(beta);
+			e[1] = std::sin(alpha) * std::cos(beta);
+			e[2] = std::sin(beta);
+		}
+		vec3(const fptype e0, const fptype e1, const fptype e2) : e{ e0, e1, e2 } {}
 
 		inline fptype x() { return e[0]; }
 		inline fptype y() { return e[1]; }
@@ -16,8 +24,8 @@ namespace render {
 		inline fptype g() { return e[1]; }
 		inline fptype b() { return e[2]; }
 
-		inline const vec3 & operator+() const { return *this; }
-		inline const vec3 & operator-() const { return vec3(-e[0], -e[1], -e[2]); }
+		inline const vec3 operator+() const { return *this; }
+		inline const vec3 operator-() const { return vec3(-e[0], -e[1], -e[2]); }
 		inline const fptype operator[](int i) const { return e[i]; }
 		inline const fptype& operator[](int i) { return e[i]; }
 
@@ -83,4 +91,10 @@ namespace render {
 	inline vec3 unit_vector(const vec3 & v) {
 		return v / v.length();
 	}
+
+	vec3 random_in_unit_sphere();
+
+	vec3 reflect(const vec3 & v, const vec3 & n);
+
+	bool refract(const vec3 & v, const vec3 & n, const float ni_over_nt, vec3 & refracted);
 }
