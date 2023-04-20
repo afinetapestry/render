@@ -93,6 +93,7 @@ namespace render {
 	}
 
 	vec3 random_in_unit_sphere();
+	vec3 random_in_unit_disk();
 
 	vec3 reflect(const vec3 & v, const vec3 & n);
 

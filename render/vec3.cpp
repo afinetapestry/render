@@ -1,10 +1,6 @@
 #define _USE_MATH_DEFINES
 
-#include <cstdlib>
-
 #include "vec3.hpp"
-
-#define random() ((fptype)std::rand() / RAND_MAX)
 
 void render::vec3::make_unit_vector() {
 	*this = unit_vector(*this);
@@ -48,6 +44,17 @@ render::vec3 render::random_in_unit_sphere() {
 	fptype y = r * sinPhi * sinTheta;
 	fptype z = r * cosPhi;
 	return render::vec3(x, y, z);
+}
+
+render::vec3 render::random_in_unit_disk() {
+	fptype u = random();
+	fptype theta = u * 2.0 * M_PI;
+	fptype r = std::cbrt(random());
+	fptype sinTheta = std::sin(theta);
+	fptype cosTheta = std::cos(theta);
+	fptype x = r * cosTheta;
+	fptype y = r * sinTheta;
+	return render::vec3(x, y, 0.0);
 }
 
 render::vec3 render::reflect(const render::vec3 & v, const render::vec3 & n) {

@@ -1,12 +1,13 @@
 #define _USE_MATH_DEFINES
 
-#include <cstdio>
-#include <cstdlib>
+#include <chrono>
+#include <iostream>
 #include <future>
 #include <memory>
 #include <vector>
 
 #include "camera.hpp"
+#include "chrono.hpp"
 #include "fptype.h"
 #include "hitable_list.hpp"
 #include "material.hpp"
@@ -15,13 +16,13 @@
 #include "ray.hpp"
 #include "vec3.hpp"
 
-#define random() ((fptype)std::rand() / RAND_MAX)
-#define WIDTH 640
-#define HEIGHT 480
-#define SAMPLES 100
+#define WIDTH 1920
+#define HEIGHT 1080
+#define SAMPLES 200
 #define BOUNCES 50
-#define THREADS 8
+#define THREADS 11
 
+render::hitable_list random_scene();
 void render_scanlines(unsigned int y, unsigned int count, unsigned int width, unsigned int height, render::camera & cam, unsigned int samples, fptype * data, const render::hitable & world);
 render::vec3 color(const render::ray & r, const render::hitable & world, const int depth);
 void writevec3(fptype * data, unsigned width, unsigned x, unsigned y, render::vec3 v);
@@ -30,21 +31,16 @@ void writergb(fptype * data, unsigned width, unsigned x, unsigned y, fptype r, f
 int main(int argc, const char *argv[]) {
 	fptype * data = (fptype *)malloc(WIDTH * HEIGHT * sizeof(render::vec3));
 
-	render::camera cam(render::vec3(-2.0, 2.0, 1.0), render::vec3(0.0, 0.0, -1.0), render::vec3(0.0, 1.0, 0.0), M_PI / 5.0, WIDTH / (fptype)HEIGHT);
+	auto lookfrom = render::vec3(13.0, 2.0, 3.0);
+	auto lookat = render::vec3(0.0, 0.0, 0.0);
+	auto focus = 10.0;
+	render::camera cam(lookfrom, lookat, render::vec3(0.0, 1.0, 0.0), M_PI / 5.0, WIDTH / (fptype)HEIGHT, 0.1, focus);
 
-	auto a = std::make_shared<render::sphere>(render::vec3(0.0, 0.0, -1.0), 0.5, std::make_shared<render::lambertian>(render::vec3(0.1, 0.2, 0.5)));
-	auto b = std::make_shared<render::sphere>(render::vec3(0.0, -100.5, -1.0), 100.0, std::make_shared<render::lambertian>(render::vec3(0.8, 0.8, 0.0)));
-	auto c = std::make_shared<render::sphere>(render::vec3(1.0, 0.0, -1.0), 0.5, std::make_shared<render::metal>(render::vec3(0.8, 0.6, 0.2), 0.1));
-	auto d = std::make_shared<render::sphere>(render::vec3(-1.0, 0.0, -1.0), 0.5, std::make_shared<render::dielectric>(1.5));
-	auto e = std::make_shared<render::sphere>(render::vec3(-1.0, 0.0, -1.0), -0.45, std::make_shared<render::dielectric>(1.5));
+	auto world = random_scene();
 
-	render::hitable_list world;
-	world.add(a);
-	world.add(b);
-	world.add(c);
-	world.add(d);
-	world.add(e);
+	auto start = std::chrono::system_clock::now();
 
+#if THREADS > 1
 	std::vector<std::future<void>> futures;
 
 	unsigned stride = HEIGHT / THREADS;
@@ -58,8 +54,49 @@ int main(int argc, const char *argv[]) {
 	for (auto & f : futures) {
 		f.wait();
 	}
+#else
+	render_scanlines(0, HEIGHT, WIDTH, HEIGHT, cam, SAMPLES, data, world);
+#endif
+
+	auto end = std::chrono::system_clock::now();
+
+	auto elapsed = end - start;
+
+	std::cout << "Rendered in: " << elapsed << "\n";
 
 	writepfm(argv[1], WIDTH, HEIGHT, 3, data);
+}
+
+render::hitable_list random_scene() {
+	render::hitable_list world;
+	world.add(std::make_shared<render::sphere>(render::vec3(0.0, -1000.0, 0.0), 1000.0, std::make_shared<render::lambertian>(render::vec3(0.5, 0.5, 0.5))));
+
+	for (int x = -11; x <= 11; ++x) {
+		for (int y = -11; y <= 11; ++y) {
+			render::vec3 center(x + 0.7 * random(), 0.2, y + 0.7 * random());
+
+			if ((center - render::vec3(4.0, 0.2, 0.0)).length() <= 0.9) {
+				continue;
+			}
+
+			float mat = random();
+			if (mat < 0.8) {
+				world.add(std::make_shared<render::sphere>(center, 0.2, std::make_shared<render::lambertian>(render::vec3(random() * random(), random() * random(), random() * random()))));
+			}
+			else if (mat < 0.95) {
+				world.add(std::make_shared<render::sphere>(center, 0.2, std::make_shared<render::metal>(render::vec3(0.5 * (1.0 + random()), 0.5 * (1.0 + random()), 0.5 * (1.0 + random())), 0.5 * random())));
+			}
+			else {
+				world.add(std::make_shared<render::sphere>(center, 0.2, std::make_shared<render::dielectric>(1.5)));
+			}
+		}
+	}
+
+	world.add(std::make_shared<render::sphere>(render::vec3(0.0, 1.0, 0.0), 1.0, std::make_shared<render::dielectric>(1.5)));
+	world.add(std::make_shared<render::sphere>(render::vec3(-4.0, 1.0, 0.0), 1.0, std::make_shared<render::lambertian>(render::vec3(0.4, 0.2, 0.1))));
+	world.add(std::make_shared<render::sphere>(render::vec3(4.0, 1.0, 0.0), 1.0, std::make_shared<render::metal>(render::vec3(0.7, 0.6, 0.5), 0.0)));
+
+	return world;
 }
 
 void render_scanlines(unsigned int y, unsigned int count, unsigned int width, unsigned int height, render::camera & cam, unsigned int samples, fptype * data, const render::hitable & world) {
@@ -72,12 +109,15 @@ void render_scanlines(unsigned int y, unsigned int count, unsigned int width, un
 				fptype v = (j + random()) / (fptype)height;
 
 				auto r = cam.get_ray(u, v);
-				col += color(r, world, BOUNCES);
+				auto c = color(r, world, BOUNCES);
+				col += c;
 			}
 
 			writevec3(data, width, i, j, col / samples);
 		}
 	}
+
+	std::printf("Done: %d-%d\n", y, std::min(y + count, height) - 1);
 }
 
 render::vec3 color(const render::ray & r, const render::hitable & world, const int depth) {

@@ -152,6 +152,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="camera.cpp" />
+    <ClCompile Include="fptype.cpp" />
     <ClCompile Include="material.cpp" />
     <ClCompile Include="pfm.cpp" />
     <ClCompile Include="render.cpp" />
@@ -160,6 +161,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="camera.hpp" />
+    <ClInclude Include="chrono.hpp" />
+    <ClInclude Include="debug.hpp" />
     <ClInclude Include="fptype.h" />
     <ClInclude Include="hitable.hpp" />
     <ClInclude Include="hitable_list.hpp" />

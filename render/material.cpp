@@ -1,10 +1,6 @@
-#include <cstdlib>
-
 #include "material.hpp"
 
-#define random() ((fptype)std::rand() / RAND_MAX)
-
-fptype schlick(fptype cosine, fptype ref);
+static fptype schlick(fptype cosine, fptype ref);
 
 bool render::lambertian::scatter(const ray & in, const hit_record & rec, vec3 & attenuation, ray & scattered) const {
 	auto target = rec.p + rec.normal + random_in_unit_sphere();
@@ -54,7 +50,7 @@ bool render::dielectric::scatter(const ray & in, const hit_record & rec, vec3 & 
 	return true;
 }
 
-fptype schlick(fptype cosine, fptype ref) {
+static fptype schlick(fptype cosine, fptype ref) {
 	fptype r0 = (1.0 - ref) / (1.0 + ref);
 	fptype r1 = r0 * r0;
 	return r1 + (1.0 * r1) * std::pow(1.0 - cosine, 5.0);
