@@ -5,6 +5,7 @@
 #include <future>
 #include <memory>
 #include <vector>
+#include <BS_thread_pool.hpp>
 
 #include "camera.hpp"
 #include "chrono.hpp"
@@ -20,7 +21,8 @@
 #define HEIGHT 1080
 #define SAMPLES 200
 #define BOUNCES 50
-#define THREADS 11
+#define USETHREADPOOL
+#define STRIDE 1
 
 render::hitable_list random_scene();
 void render_scanlines(unsigned int y, unsigned int count, unsigned int width, unsigned int height, render::camera & cam, unsigned int samples, fptype * data, const render::hitable & world);
@@ -45,20 +47,16 @@ int main(int argc, const char *argv[]) {
 
 	auto start = std::chrono::system_clock::now();
 
-#if THREADS > 1
-	std::vector<std::future<void>> futures;
+#ifdef USETHREADPOOL
+	BS::thread_pool pool;
 
-	unsigned stride = HEIGHT / THREADS;
-	for (unsigned y = 0; y < HEIGHT; y += stride) {
-		auto f = std::async(std::launch::async, [&, y]() {
-			render_scanlines(y, stride, WIDTH, HEIGHT, cam, SAMPLES, data, world);
+	for (unsigned y = 0; y < HEIGHT; y += STRIDE) {
+		pool.push_task([&, y]() {
+			render_scanlines(y, STRIDE, WIDTH, HEIGHT, cam, SAMPLES, data, world);
 		});
-		futures.push_back(std::move(f));
 	}
 
-	for (auto & f : futures) {
-		f.wait();
-	}
+	pool.wait_for_tasks();
 #else
 	render_scanlines(0, HEIGHT, WIDTH, HEIGHT, cam, SAMPLES, data, world);
 #endif
@@ -122,7 +120,12 @@ void render_scanlines(unsigned int y, unsigned int count, unsigned int width, un
 		}
 	}
 
-	std::printf("Done: %d-%d\n", y, std::min(y + count, height) - 1);
+	if (count > 1) {
+		std::printf("Done: %d-%d\n", y, std::min(y + count, height) - 1);
+	}
+	else {
+		std::printf("Done: %d\n", y);
+	}
 }
 
 render::vec3 color(const render::ray & r, const render::hitable & world, const int depth) {
