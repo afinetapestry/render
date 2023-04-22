@@ -1,0 +1,32 @@
+cmake_minimum_required(VERSION 3.18)
+
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
+set(CMAKE_EXECUTABLE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
+
+set(CMAKE_CXX_STANDARD 17)
+
+set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS True)
+
+set(CMAKE_VS_JUST_MY_CODE_DEBUGGING True)
+
+project(render CXX)
+
+find_path(BSHOSHANY_THREAD_POOL_INCLUDE_DIRS "BS_thread_pool.hpp")
+
+file(GLOB render_src
+	src/*.cpp
+	src/*.h
+	src/*.hpp
+)
+
+add_executable(${PROJECT_NAME}
+	${render_src}
+)
+
+target_include_directories(${PROJECT_NAME}
+	PRIVATE
+		src/
+		${BSHOSHANY_THREAD_POOL_INCLUDE_DIRS}
+)

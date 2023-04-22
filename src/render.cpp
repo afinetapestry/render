@@ -29,6 +29,11 @@ void writevec3(fptype * data, unsigned width, unsigned x, unsigned y, render::ve
 void writergb(fptype * data, unsigned width, unsigned x, unsigned y, fptype r, fptype g, fptype b);
 
 int main(int argc, const char *argv[]) {
+	if (argc < 2) {
+		std::cerr << "Usage: render file.pfm\n";
+		return 1;
+	}
+
 	fptype * data = (fptype *)malloc(WIDTH * HEIGHT * sizeof(render::vec3));
 
 	auto lookfrom = render::vec3(13.0, 2.0, 3.0);
